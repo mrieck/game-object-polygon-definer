@@ -1,0 +1,354 @@
+<!DOCTYPE html><html>
+<head>
+    <title>Game Objects Polygon Definition Creator Thingy</title>
+	<link rel="shortcut icon" type="image/x-icon" href="http://localhost/games/favicon2.ico">    
+    <meta charset="utf-8">
+	<!-- STYLES -->
+	<link rel="stylesheet" href="./jslib/bootstrap/css/bootstrap.css" type="text/css" charset="utf-8">
+ <!--   <link rel="stylesheet" href="./style.css"> -->
+
+	<!-- THIRD PARTY -->	
+	<script type="text/javascript" src="./jslib/jquery-1.7.1.min.js"></script>	
+	<script type="text/javascript" src="./jslib/bootstrap/js/bootstrap.min.js?<?php echo time();?>"></script>
+</head>
+<body>
+
+<div id="page">
+    <div id="header">
+        <div style="text-align: center;">
+
+        </div>
+    </div>
+	<div class="container-fluid">
+	  <div class="row-fluid">
+	    <div class="span3">
+			<h5>What is This?</h5>
+			<p  style="font-size:12px;line-height:14px;">I made this utility to help define objects that were going to be used in Box2D (in javascript).
+			First load a local image, click points on the image.  Double-click to finish the polygon.  Then
+			you can click anywhere in the scene to see if the polygon works correctly. Also you can see how MouseJoints work with
+			CAAT by dragging any objects added to the scene.</p>
+			<br>
+			<h5>Load A Local File</h5>
+			<input id="img_loc" type="text" value="./img/corndog.png" />
+			<button id="load_image">Load</button>
+			<button id="reset_image">Reset</button>
+			<br><br>
+						
+			<h5>Definition Results</h5>
+			<textarea id="polygon_output" rows="8" style="min-width:230px;">Output</textarea>			
+			<br><br>
+			<h5>Polygon Problems?</h5>			
+			-<span style="font-size:10px">All polygons must be convex.  See <a href="http://www.emanueleferonato.com/2008/12/19/understanding-custom-polygons-in-box2d/">this</a>.</span><br>
+			-<span style="font-size:10px">You must define a polygon in a clockwise order.</span><br>
+			-<span style="font-size:10px">Double-Click to connect last point to your first point</span><br>			
+			-<span style="font-size:10px">After double-clicking the last point, click anywhere on scene to test polygon.</span><br>			
+			
+			
+	    </div>
+	    <div class="span9">
+	        <div style="text-align:center">
+	            <h3>Game Objects Polygon Definition Creator Thingy</h3>
+				<br style="clear:both">
+	            <div id="experiment-holder">
+	            </div>				
+	        </div>
+
+	    </div>
+	  </div>
+	</div>
+</div>
+<!--
+	<a href="#" id="pause_button" onclick="pause_scene()">
+<div id="button_extra">
+		PAUSE
+	</a>
+</div>
+-->
+
+<!--Libraries -->
+<script type="text/javascript" src="./js/Box2dWeb-2.1.a.3.js"></script>
+<script type="text/javascript" src="./js/caat.js"></script>
+<script type="text/javascript" src="./js/caat-box2d.js"></script>
+<script type="text/javascript" src="./js/template.js"></script>
+
+<!-- Physics Board That Has MouseJoints -->
+<script type="text/javascript" src="./js/physics_board.js?<?php echo time();?>"></script>
+
+<!-- Edit Interface -->
+<script type="text/javascript" src="./js/edit_object.js?<?php echo time();?>"></script>
+
+<script type="text/javascript">
+    /**
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+	 
+     * @license
+     *
+     * The MIT License
+     * Copyright (c) 2010-2011 Ibon Tolosana, Hyperandroid || http://labs.hyperandroid.com/
+
+     * Permission is hereby granted, free of charge, to any person obtaining a copy
+     * of this software and associated documentation files (the "Software"), to deal
+     * in the Software without restriction, including without limitation the rights
+     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     * copies of the Software, and to permit persons to whom the Software is
+     * furnished to do so, subject to the following conditions:
+
+     * The above copyright notice and this permission notice shall be included in
+     * all copies or substantial portions of the Software.
+
+     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+     * THE SOFTWARE.
+     *
+     */
+	 
+
+	
+	
+					 
+	  
+    (function() {
+        /**
+         * Startup it all up when the document is ready.
+         * Change for your favorite frameworks initialization code.
+         */
+		  //CAAT.DEBUG=1;
+        window.addEventListener(
+                'load',
+                function() {
+                    CAAT.modules.initialization.init(
+                            800, 600,
+                            'experiment-holder',
+                            [
+                                {id:'ball',  url:'./img/ball.png'},
+                                {id:'rugby', url:'./img/football.png'},
+                                {id:'definer_background', url:'./img/bg_define_wide.png'},
+								{id:'no_image', url:'./img/noimage.png'}											  
+                            ],
+                            __box2d
+                            );
+									 
+							
+                },
+                false);
+
+        function __box2d(director) {
+            CAAT.PMR = director.width/10;    // set Point meter ratio to 10 meters.
+			
+			console.log("CAAT PMR: " + CAAT.PMR);
+			
+            var main = new MainDefiner().initialize(director);
+			
+			buttonHandlers(main);
+        };
+		
+		function buttonHandlers(main)
+		{
+			$('#load_image').click(function()
+			{				
+				
+				var theLocation = $('#img_loc').val();
+				var imageFullName = theLocation.replace(/^.*[\\\/]/, '')
+				
+				var imageName = imageFullName.split('.')[0];
+				
+				main.loadImage(theLocation, imageName);
+			});		
+			
+			$('#reset_image').click(function()
+			{				
+				main.resetEditor();
+			});					
+		
+		}
+
+        MainDefiner = function() {
+            return this;
+        };
+
+        MainDefiner.prototype= {
+
+            gravity:    1.8,
+            world:      null,   // box2d world
+            scene:      null,   // CAAT scene
+			director: null,
+			isPaused:   false,
+			currBody :  null,   //Tilt Platform Body
+			editorContainer : null,
+            dx:         0,
+            dy:         -712,
+
+            initialize : function(director) 
+			{
+				this.director = director;
+                this.createScene(director);
+                this.createWorld(director);
+                this.createEditor(director);
+				return this;
+            },
+            createScene : function(director) 
+			{
+                var me= this;
+
+                this.scene = director.createScene();
+
+                this.scene.onRenderStart= function() {
+                    me.world.Step(1.0/60, 1,1);
+                    me.world.ClearForces();
+                };
+
+                this.scene.onRenderEnd =  function()    {
+                    me.world.DrawDebugData();
+                }
+            },
+			pauseScene : function(director)
+			{
+				this.scene.setPaused(true);
+			
+			},
+			loadImage : function(imgLocation, imgName)
+			{
+				var me = this;
+				var extraPreloader = new CAAT.ImagePreloader();
+				extraPreloader.loadImages(
+	                [
+	                    {id:imgName, url: imgLocation}
+	                ],
+	                function( counter, images ) 
+					{								
+						if(counter === images.length) 
+						{
+							//console.log(images[0]);
+							
+							//Add image to the director
+							me.director.addImage(images[0].id, images[0].image, true);							
+							var theName = images[0].id;
+							//console.log("The name: " + theName);
+							me.editorContainer.setImageTo(me.director, images[0].id);
+							
+							
+							
+							
+						}
+					}
+				);					
+			
+			},
+			setPolygonDefinition : function(theDefinition)
+			{
+				var defOutput = JSON.stringify(theDefinition);
+				defOutput = defOutput.replace(/"/g , "");  //"
+				
+				$('#polygon_output').val(defOutput);
+			},
+			resetEditor : function()
+			{
+				this.editorContainer.resetPolygons();
+			},
+            createWorld : function(director) 
+			{
+                var gravity =           new Box2D.Common.Math.b2Vec2(0, this.gravity);
+                var doSleep =           true;
+
+                var BOUNDS_DENSITY=     1.2;
+                var BOUNDS_FRICTION=    .9;
+                var BOUNDS_RESTITUTION= .36;
+
+                var dx0=                this.dx;
+                var dy0=                this.dy;
+                var dx1=                director.width;
+                var dy1=                director.height;
+
+                var i;
+
+                var bounds = [
+                        dx0,dy0,
+                        dx1,dy0,
+                        dx1,dy1,
+                        dx0,dy1,
+                        dx0,dy0
+                    ];
+
+                this.world = new Box2D.Dynamics.b2World(gravity, doSleep);
+                this.world.SetContinuousPhysics(true);
+
+				CAAT.enableBox2DDebug( true, director, this.world );
+			 
+				//CREATE 4 lines in the world that are the bounds of the world
+				for( i=0; i<4; i++ )    
+				{
+				    var actor0= new CAAT.B2DPolygonBody().createBody(
+				        this.world,
+				        {
+				            bodyType:   Box2D.Dynamics.b2Body.b2_staticBody,
+				            density:    BOUNDS_DENSITY,
+				            friction:   BOUNDS_FRICTION,
+				            restitution:BOUNDS_RESTITUTION,
+				            polygonType:CAAT.B2DPolygonBody.Type.EDGE,
+				            bodyDef:    [
+				                {x: bounds[i*2  ],  y: bounds[i*2+1] },
+				                {x: bounds[i*2+2],  y: bounds[i*2+3] }
+				            ],
+				            userData:   {}
+				        });
+
+
+				}
+		 
+				var listener = new Box2D.Dynamics.b2ContactListener;
+				listener.BeginContact = function(contact) 
+				{
+				  console.log(contact.GetFixtureA().GetBody().GetUserData());
+				}
+				this.world.SetContactListener(listener);					 
+					 
+            },			
+
+            /**
+             * Create a background bouncing ball every 1 second.
+             *
+             * @param director {CAAT.Director}
+             */
+            createEditor : function(director) 
+			{
+                var me= this;
+				
+				
+				var bg = new ANIMO.PhysicsBoard().init(this.director, this.world, this).
+                        setBounds(0,0,director.width,director.height).
+						setBackgroundImage(director.getImage('definer_background'));
+				
+				
+				/*  CREATE THE EDITOR OBJECT ****/
+				this.editorContainer = new ANIMO.EditPolygon().init(director, this.scene, this); 
+								
+				this.scene.addChild(this.editorContainer);
+				
+				
+				//this.scene.addChild(bg);
+                this.scene.addChildAt(bg,0);
+
+                this.scene.createTimer(
+                        0,
+                        1500,
+                        function(scene_time, task_elapsed_time, timertask_instance)
+						{
+							//not used anymore							
+                            timertask_instance.reset( scene_time );
+                        },
+                        null,
+                        null);
+            }
+       
+        };
+    })();
+
+
+</script>
+</body>
+</html>
